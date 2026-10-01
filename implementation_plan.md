@@ -59,6 +59,6 @@
   - [x] Remove loose unformatted photo files from workspace root.
   - [x] Embed prototype image in `README.md` and document in `media/README.md`.
   - [x] Update `log/activity_log.md` with timestamped change entry.
-  - [ ] Stage, commit, and push changes to GitHub (`origin main`).
-  - [ ] Verify remote status on GitHub.
+  - [x] Stage, commit, and push changes to GitHub (`origin main`).
+  - [x] Verify remote status on GitHub.
 
