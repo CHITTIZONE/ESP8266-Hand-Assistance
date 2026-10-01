@@ -2,6 +2,12 @@
 
 A low-cost servo-based hand assistance prototype designed to demonstrate controlled and repetitive hand movement using an ESP8266 NodeMCU V3.
 
+<p align="center">
+  <img src="media/prototype.jpg" alt="ESP8266 Servo-Based Hand Assistance Prototype Setup" width="800">
+  <br>
+  <em>ESP8266 Hand Assistance Hardware Prototype Setup with SG90 Servo Actuators</em>
+</p>
+
 The system controls a servo motor through the ESP8266 and performs a continuous movement cycle:
 
 **0° → 90° → Hold 3 seconds → 90° → 0° → Hold 3 seconds → Repeat**
