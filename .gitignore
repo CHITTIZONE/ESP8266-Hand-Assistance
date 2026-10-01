@@ -1,0 +1,19 @@
+# Arduino IDE and build artifacts
+build/
+*.hex
+*.bin
+*.elf
+*.o
+*.d
+
+# VS Code / IDE configs (optional, ignore user-specific settings)
+.vscode/*
+!.vscode/c_cpp_properties.json
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.driveupload
+*~
