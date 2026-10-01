@@ -14,3 +14,17 @@
 - Added `.gitignore` configured for Arduino and ESP8266 development.
 - Created `hardware/README.md`, `docs/README.md`, and `media/README.md` for project asset tracking.
 
+## [2026-10-01 16:36:25 IST] - Git Repository Initialization & Initial Commit
+- Initialized local Git repository on `main` branch.
+- Configured git commit attribution under IAMCHITTI (CHITTIZONE).
+- Committed all project files and structure: commit `be93dfe`.
+
+## [2026-10-01 16:38:00 IST] - Remote Repository Creation, Push & Registration
+- Created public repository `ESP8266-Hand-Assistance` on GitHub under `CHITTIZONE` via GitHub API.
+- Configured remote origin: `https://github.com/CHITTIZONE/ESP8266-Hand-Assistance.git`.
+- Successfully pushed `main` branch upstream to origin.
+- Registered repository with GitHub Desktop client.
+- Verified remote public visibility at `https://github.com/CHITTIZONE/ESP8266-Hand-Assistance`.
+
+
+

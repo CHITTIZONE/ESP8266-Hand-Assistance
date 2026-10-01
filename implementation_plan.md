@@ -35,18 +35,18 @@
   - [x] Add `.gitignore`.
   - [x] Add placeholders for `hardware/`, `docs/`, and `media/`.
 
-- [ ] **Phase 3: Git Initialization & Commit**
-  - [ ] Initialize git repository (`main` branch).
-  - [ ] Stage all files.
-  - [ ] Commit with descriptive message.
+- [x] **Phase 3: Git Initialization & Commit**
+  - [x] Initialize git repository (`main` branch).
+  - [x] Stage all files.
+  - [x] Commit with descriptive message.
 
-- [ ] **Phase 4: Remote Repository Creation & Push**
-  - [ ] Call GitHub API to create public repo `CHITTIZONE/ESP8266-Hand-Assistance`.
-  - [ ] Add git remote `origin`.
-  - [ ] Push `main` to `origin`.
-  - [ ] Verify remote URL and branch status.
+- [x] **Phase 4: Remote Repository Creation & Push**
+  - [x] Call GitHub API to create public repo `CHITTIZONE/ESP8266-Hand-Assistance`.
+  - [x] Add git remote `origin`.
+  - [x] Push `main` to `origin`.
+  - [x] Verify remote URL and branch status.
 
-- [ ] **Phase 5: GitHub Desktop Registration & Final Verification**
-  - [ ] Register repo with GitHub Desktop CLI.
-  - [ ] Verify repository visibility is Public on GitHub.
-  - [ ] Finalize activity logs and documentation.
+- [x] **Phase 5: GitHub Desktop Registration & Final Verification**
+  - [x] Register repo with GitHub Desktop CLI.
+  - [x] Verify repository visibility is Public on GitHub.
+  - [x] Finalize activity logs and documentation.
