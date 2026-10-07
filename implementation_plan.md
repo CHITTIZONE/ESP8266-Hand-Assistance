@@ -1,64 +1,65 @@
-# Implementation Plan: ESP8266 Servo-Based Hand Assistance System (Public Repository)
+# Implementation Plan: ESP8266 Wi-Fi Hotspot & Web Server Control System
 
 **Target Repository**: `https://github.com/CHITTIZONE/ESP8266-Hand-Assistance`  
-**Visibility**: Public  
-**Timestamp**: 2026-10-01 16:55:00 IST  
+**Current Date/Time**: 2026-10-08 01:46:00 IST  
+**Status**: Completed  
 
 ---
 
 ## 1. Objectives & Scope
-- Set up a clean, structured repository for the ESP8266 Servo-Based Hand Assistance System.
-- Integrate the comprehensive `README.md` provided by the user.
-- Structure source files in `src/hand_assistance.ino` according to project architecture.
-- Add standard MIT License attributing to `Ramkumar V`.
-- Include directory placeholders for `hardware/`, `docs/`, and `media/`.
-- Configure `.gitignore`.
-- Initialize Git repository with `main` branch.
-- Create public repository on GitHub under account `CHITTIZONE`.
-- Push codebase to remote `origin`.
-- Register repository in GitHub Desktop.
-- Integrate prototype hardware imagery into `media/` and display in `README.md`.
-- Maintain change logs in `log/activity_log.md`.
+- **Wi-Fi SoftAP Mode**: Configure the ESP8266 NodeMCU to broadcast a standalone Wi-Fi hotspot (`ESP8266-Hand-Assistance`, IP: `192.168.4.1`) without needing an external router.
+- **Embedded Web Server**: Deploy an asynchronous/lightweight HTTP web server using `ESP8266WebServer` serving a modern, mobile-friendly Web Dashboard.
+- **Web UI Controls**: Provide interactive **START** and **STOP** buttons with live telemetry (Status, Current Angle, Motion State, Cycle Counter) via asynchronous Fetch/AJAX calls.
+- **Dual Control (Physical Button + Web)**: Support a physical pushbutton on NodeMCU (`D3` / GPIO0 with `INPUT_PULLUP` and debounce) to toggle Start/Stop alongside the web interface.
+- **Non-blocking State Machine**: Refactor firmware from blocking `delay()` calls to a `millis()`-based state machine so web requests and button inputs are processed with zero latency, and stopping returns smoothly to safe rest position (0°).
+- **Documentation & Logging**: Update `README.md`, `src/hand_assistance.ino`, `sketch_oct1a/sketch_oct1a.ino`, `implementation_plan.md`, and `log/activity_log.md`.
 
 ---
 
-## 2. Execution Checklist & Status
+## 2. Technical Architecture & Endpoints
 
-- [x] **Phase 1: Requirements & Naming Alignment**
-  - [x] Confirmed repository name: `ESP8266-Hand-Assistance`.
-  - [x] Confirmed visibility: Public.
-  - [x] Confirmed GitHub account: `CHITTIZONE` (Ramkumar V).
+### Wi-Fi Configuration
+- **Mode**: `WIFI_AP` (Soft Access Point)
+- **SSID**: `ESP8266-Hand-Assistance`
+- **Password**: `12345678` (WPA2-PSK)
+- **Default IP**: `192.168.4.1`
 
-- [x] **Phase 2: Project File Structuring**
-  - [x] Create `README.md` with complete documentation.
-  - [x] Create `src/hand_assistance.ino` with ESP8266 servo control firmware.
-  - [x] Add `LICENSE` (MIT License - Ramkumar V).
-  - [x] Add `.gitignore`.
-  - [x] Add placeholders for `hardware/`, `docs/`, and `media/`.
+### Web Endpoints
+| Method | Endpoint | Description | Response |
+|---|---|---|---|
+| `GET` | `/` | Web Control Dashboard (HTML/CSS/JS) | HTML Document |
+| `POST`/`GET` | `/start` | Starts the repetitive assistance cycle | JSON `{"running":true,"angle":0,"state":"Flexion: Moving (0° → 90°)","cycles":0}` |
+| `POST`/`GET` | `/stop` | Stops the cycle and safely returns servo to 0° | JSON `{"running":false,"angle":30,"state":"Stopping: Returning to 0° Safe Rest","cycles":1}` |
+| `GET` | `/status` | Real-time status API for dynamic UI updates | JSON `{"running":true,"angle":45,"state":"Flexion: Moving (0° → 90°)","cycles":2}` |
 
-- [x] **Phase 3: Git Initialization & Commit**
-  - [x] Initialize git repository (`main` branch).
-  - [x] Stage all files.
-  - [x] Commit with descriptive message.
+### Hardware Pin Mapping
+| Component | ESP8266 Pin | GPIO | Description |
+|---|---|---|---|
+| Servo PWM Signal | `D4` | GPIO2 | PWM output to SG90 / MG995 / MG996R servo |
+| Physical Start/Stop Button | `D3` | GPIO0 | Pushbutton to GND (Internal Pull-Up enabled) |
+| Onboard LED / Indicator | `D0` / `LED_BUILTIN` | GPIO16 / GPIO2 | Status indication |
 
-- [x] **Phase 4: Remote Repository Creation & Push**
-  - [x] Call GitHub API to create public repo `CHITTIZONE/ESP8266-Hand-Assistance`.
-  - [x] Add git remote `origin`.
-  - [x] Push `main` to `origin`.
-  - [x] Verify remote URL and branch status.
+---
 
-- [x] **Phase 5: GitHub Desktop Registration & Initial Verification**
-  - [x] Register repo with GitHub Desktop CLI.
-  - [x] Verify repository visibility is Public on GitHub.
+## 3. Execution Checklist & Status
 
-- [x] **Phase 6: Prototype Media Integration & Remote Push**
-  - [x] Review previous change logs in `log/activity_log.md`.
-  - [x] Update implementation plan in local artifact and project root.
-  - [x] Copy uploaded prototype image to `media/prototype.jpg`.
-  - [x] Copy secondary view to `media/prototype_view2.jpg`.
-  - [x] Remove loose unformatted photo files from workspace root.
-  - [x] Embed prototype image in `README.md` and document in `media/README.md`.
-  - [x] Update `log/activity_log.md` with timestamped change entry.
-  - [x] Stage, commit, and push changes to GitHub (`origin main`).
-  - [x] Verify remote status on GitHub.
+- [x] **Phase 1: Architecture Design & Plan Synchronization**
+  - [x] Create implementation plan artifact.
+  - [x] Update project `implementation_plan.md`.
+  - [x] Check and log starting phase in `log/activity_log.md`.
 
+- [x] **Phase 2: Firmware Implementation (`src/hand_assistance.ino` & `sketch_oct1a/sketch_oct1a.ino`)**
+  - [x] Include `<ESP8266WiFi.h>` and `<ESP8266WebServer.h>`.
+  - [x] Implement `millis()` non-blocking state machine for smooth 0° ↔ 90° motion with 3s hold periods.
+  - [x] Embed modern, responsive HTML/CSS/JS dashboard with Start/Stop buttons and live telemetry.
+  - [x] Add `/start`, `/stop`, `/status` REST endpoints.
+  - [x] Add physical button debounce and toggle logic on pin `D3`.
+  - [x] Synchronize `sketch_oct1a/sketch_oct1a.ino`.
+
+- [x] **Phase 3: Documentation Updates**
+  - [x] Update `README.md` with Wi-Fi AP connection instructions, Web UI guide, and revised circuit wiring.
+  - [x] Update specifications table and future feature checklist.
+
+- [x] **Phase 4: Change Logging & Verification**
+  - [x] Append timestamped change log entry to `log/activity_log.md`.
+  - [x] Validate syntax, endpoints, and file completeness.

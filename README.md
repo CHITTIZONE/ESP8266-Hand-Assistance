@@ -1,6 +1,6 @@
-# ESP8266 Servo-Based Hand Assistance System
+# ESP8266 Servo-Based Hand Assistance System (Wi-Fi Web Server & Button Control)
 
-A low-cost servo-based hand assistance prototype designed to demonstrate controlled and repetitive hand movement using an ESP8266 NodeMCU V3.
+A low-cost servo-based hand assistance prototype designed to demonstrate controlled and repetitive hand movement using an ESP8266 NodeMCU V3, featuring an autonomous **Wi-Fi Hotspot Access Point**, an embedded **Web Server Control Dashboard**, and a **Physical Hardware Push-button**.
 
 <p align="center">
   <img src="media/prototype.jpg" alt="ESP8266 Servo-Based Hand Assistance Prototype Setup" width="800">
@@ -8,11 +8,22 @@ A low-cost servo-based hand assistance prototype designed to demonstrate control
   <em>ESP8266 Hand Assistance Hardware Prototype Setup with SG90 Servo Actuators</em>
 </p>
 
-The system controls a servo motor through the ESP8266 and performs a continuous movement cycle:
+The system controls a servo motor through the ESP8266 and performs a continuous, non-blocking rehabilitation cycle when started:
 
-**0° → 90° → Hold 3 seconds → 90° → 0° → Hold 3 seconds → Repeat**
+**0° (Rest) → 90° (Flexion) → Hold 3 seconds → 90° → 0° (Extension) → Hold 3 seconds → Repeat**
 
 > **Note:** This is an experimental engineering prototype and is not a certified medical device.
+
+---
+
+## Key Features
+
+- **Standalone Wi-Fi Hotspot (SoftAP)**: Broadcasts its own private Wi-Fi network (`ESP8266-Hand-Assistance`). No home Wi-Fi router or internet connection needed.
+- **Embedded Web Control Dashboard**: Access the mobile-friendly web dashboard directly by browsing to `http://192.168.4.1`.
+- **Interactive Web Controls**: Touch/click **START** and **STOP** action buttons with real-time motion telemetry, angle progress bar, and cycle counter.
+- **Physical Push-Button Control**: Hardware push button on NodeMCU pin `D3` (GPIO0) to toggle Start/Stop directly on the device with hardware debounce.
+- **Safe Stop & Return**: Pressing STOP at any point during movement triggers a smooth, controlled return back to 0° (Rest position).
+- **Non-blocking State Machine**: Motion engine uses `millis()` timing, allowing instantaneous response to Web commands and button presses without freezing the processor.
 
 ---
 
@@ -20,699 +31,244 @@ The system controls a servo motor through the ESP8266 and performs a continuous 
 
 Hand mobility can be affected by neurological conditions, injuries, or other physical limitations. Assistive robotic mechanisms can potentially provide controlled repetitive movement to support rehabilitation research.
 
-This project demonstrates the basic electronic control system for such a mechanism using:
+This project demonstrates the electronic control and wireless interface system using:
 
 - ESP8266 NodeMCU V3
-- Servo motor
+- SG90 / MG995 / MG996R Servo motor
+- Physical Push-button (Start/Stop)
 - External 5 V power supply
-- Arduino IDE
-
-The servo moves smoothly between two predefined angular positions and holds each position for a fixed duration.
+- Arduino IDE with ESP8266 Core
 
 ---
 
-## Objectives
+## Working Principle & State Machine
 
-- Develop a simple servo-based hand assistance prototype.
-- Control servo movement using an ESP8266.
-- Generate smooth and repeatable angular movement.
-- Implement configurable movement and holding times.
-- Provide a foundation for a future multi-servo hand-assistance system.
-- Enable future integration of sensors and wireless control.
-
----
-
-## Working Principle
-
-The ESP8266 generates the PWM control signal required by the servo motor.
-
-### Movement Sequence
+The firmware uses a non-blocking finite state machine (FSM) executed alongside the HTTP web server and hardware button polling.
 
 ```text
-                    START
-                      |
-                      v
-                    0°
-                      |
-                      | Smooth Movement
-                      v
-                    90°
-                      |
-                      | Hold 3 Seconds
-                      v
-                    90°
-                      |
-                      | Smooth Movement
-                      v
-                     0°
-                      |
-                      | Hold 3 Seconds
-                      v
-                   REPEAT
+               +------------------------------------+
+               |         [POWER ON / RESET]         |
+               +-----------------+------------------+
+                                 |
+                                 v
+               +-----------------+------------------+
+               |        STATE_STOPPED (0° Rest)     |<----------------+
+               +-----------------+------------------+                 |
+                                 |                                    |
+                    [START: Web Button or D3 Pin]                     |
+                                 |                                    |
+                                 v                                    |
++------------->+-----------------+------------------+                 |
+|              |      STATE_MOVING_TO_MAX           |                 |
+|              |     Smooth Step 0° -> 90° (15ms)   |                 |
+|              +-----------------+------------------+                 |
+|                                |                                    |
+|              +-----------------+------------------+                 |
+|              |         STATE_HOLD_MAX             |                 |
+|              |        Holding for 3000 ms         |                 |
+|              +-----------------+------------------+                 |
+|                                |                                    |
+|              +-----------------+------------------+                 |
+|              |      STATE_MOVING_TO_MIN           |                 |
+|              |     Smooth Step 90° -> 0° (15ms)   |                 |
+|              +-----------------+------------------+                 |
+|                                |                                    |
+|              +-----------------+------------------+                 |
+|              |         STATE_HOLD_MIN             |                 |
+|              |        Holding for 3000 ms         |                 |
+|              +-----------------+------------------+                 |
+|                                |                                    |
+|                         [Still Running?]                            |
+|                       /                \                            |
+|                 (YES)/                  \(NO)                       |
++---------------------+                    +--------------------------+
+                                           |  STATE_RETURNING_TO_REST |
+                                           |  Smooth Step down to 0°  |
+                                           +-------------+------------+
+                                                         |
+                                                         +------------+
 ```
 
-The servo moves one degree at a time with a 15 ms delay between each step.
+---
+
+## Wi-Fi Hotspot & Web Dashboard Guide
+
+### 1. Connecting to the Device Hotspot
+1. Power on the NodeMCU system.
+2. On your smartphone, tablet, or laptop, scan for available Wi-Fi networks.
+3. Connect to the Wi-Fi network:
+   - **SSID**: `ESP8266-Hand-Assistance`
+   - **Password**: `12345678`
+4. Open your web browser (Chrome, Safari, Edge, Firefox) and navigate to:
+   - **URL**: `http://192.168.4.1`
+
+### 2. Dashboard Interface
+The web page displays:
+- **System Status Badge**: Indicates `RUNNING` (Green Glow) or `STOPPED` (Red).
+- **Live Angle Indicator & Gauge**: Real-time display of the servo's current angle from `0°` to `90°`.
+- **Motion Phase Subtitle**: `Flexion (0° → 90°)`, `Holding at 90°`, `Extension (90° → 0°)`, `Holding at 0°`, or `Idle`.
+- **START Button**: Commences the continuous exercise cycle.
+- **STOP Button**: Safely stops the cycle and returns the servo to 0°.
+- **Cycle Counter**: Tracks total completed 0° → 90° → 0° cycles in real time.
+
+### 3. REST API Endpoints
+| HTTP Method | Endpoint | Description | JSON Response Sample |
+|---|---|---|---|
+| `GET` | `/` | Web UI Dashboard | HTML Page |
+| `POST` / `GET` | `/start` | Start repetitive cycle | `{"running":true,"angle":0,"state":"Flexion...","cycles":0}` |
+| `POST` / `GET` | `/stop` | Stop & return safely to 0° | `{"running":false,"angle":30,"state":"Stopping...","cycles":3}` |
+| `GET` | `/status` | Telemetry polling | `{"running":true,"angle":75,"state":"Flexion...","cycles":4}` |
 
 ---
 
 ## Hardware Requirements
 
-| Component | Quantity | Purpose |
+| Component | Quantity | Purpose | Pin Connection |
+|---|---:|---|---|
+| ESP8266 NodeMCU V3 | 1 | Main Controller & Wi-Fi Server | — |
+| Servo Motor (SG90 / MG996R) | 1 | Hand Movement Actuator | Signal → `D4` (GPIO2) |
+| Tactile Push-Button | 1 | Hardware Start / Stop Toggle | Pin 1 → `D3` (GPIO0), Pin 2 → `GND` |
+| 5 V External Power Supply (2A) | 1 | Dedicated Servo Power | `+5V` → Servo Red, `GND` → Servo Brown & ESP GND |
+| Jumper Wires & Breadboard | As required | Circuit Interconnects | — |
+| USB Cable | 1 | Programming & ESP8266 Power | Micro-USB |
+
+---
+
+## Circuit Connections
+
+```text
+                            ESP8266 NodeMCU V3
+                         ┌───────────────────────┐
+                         │                       │
+                         │  D4 / GPIO2 ──────────┼────────── Servo Signal (Orange/Yellow)
+                         │                       │
+                         │  D3 / GPIO0 ────┐     │
+                         │                 │     │
+                         │  GND ───────────┼─┬───┼──────────┐
+                         └─────────────────┼─┼───┘          │
+                                           │ │              │
+                                           │ │              │
+                         ┌─────────────────┘ │              │
+                         │   [ Push Button ] │              │
+                         └───────────────────┘              │
+                                                            │
+    External 5V Power Supply                                │
+    ┌─────────────────────────┐                             │
+    │  +5V (Positive) ────────┼──────────────────────── Servo VCC (Red)
+    │                         │                             │
+    │  GND (Negative) ────────┼───────────────────────── Servo GND (Brown/Black)
+    └─────────────────────────┘
+```
+
+> **Crucial Ground Connection:** The **ESP8266 GND** and the **External Power Supply GND** must be tied together (Common Ground) to ensure a shared voltage reference for the PWM signal.
+
+---
+
+## Source Code (`src/hand_assistance.ino`)
+
+```cpp
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <Servo.h>
+
+#define SERVO_PIN   D4   // GPIO2 - Servo Signal
+#define BUTTON_PIN  D3   // GPIO0 - Physical Start/Stop Button (Active LOW)
+
+const char *AP_SSID = "ESP8266-Hand-Assistance";
+const char *AP_PASS = "12345678";
+
+ESP8266WebServer server(80);
+Servo handServo;
+
+const int MIN_ANGLE = 0;
+const int MAX_ANGLE = 90;
+const int STEP_DELAY_MS = 15;
+const unsigned long HOLD_TIME_MS = 3000;
+
+enum MotionState {
+  STATE_STOPPED,
+  STATE_MOVING_TO_MAX,
+  STATE_HOLD_MAX,
+  STATE_MOVING_TO_MIN,
+  STATE_HOLD_MIN,
+  STATE_RETURNING_TO_REST
+};
+
+MotionState currentState = STATE_STOPPED;
+bool isRunning = false;
+int currentAngle = 0;
+unsigned long lastStepTime = 0;
+unsigned long holdStartTime = 0;
+unsigned long cycleCount = 0;
+
+// Button Debounce
+int lastButtonState = HIGH;
+int buttonState = HIGH;
+unsigned long lastDebounceTime = 0;
+const unsigned long debounceDelay = 50;
+
+// Refer to src/hand_assistance.ino for the complete HTML and Web Server implementation.
+```
+
+---
+
+## Timing Parameters
+
+| Parameter | Default Value | Description |
 |---|---:|---|
-| ESP8266 NodeMCU V3 | 1 | Main controller |
-| Servo Motor | 1 | Hand movement actuator |
-| 5 V External Power Supply | 1 | Servo power |
-| Jumper Wires | As required | Connections |
-| USB Cable | 1 | Programming and ESP8266 power |
-| Mechanical Linkage | As required | Hand mechanism |
-
-### Future Components
-
-- Flex sensor
-- Force sensor
-- Limit switch
-- Emergency stop
-- OLED display
-- Battery
-- Multiple servo motors
-- PCA9685 servo driver
-- Wi-Fi control interface
+| Minimum Angle | `0°` | Resting / open hand angle |
+| Maximum Angle | `90°` | Flexion / closed hand angle |
+| Step Interval | `15 ms` | Time between 1° position increments |
+| Hold Duration | `3000 ms` | Rest time at 0° and 90° |
+| Debounce Delay | `50 ms` | Hardware button noise suppression |
 
 ---
 
-# Circuit Connections
-
-### Servo Signal
-
-```text
-ESP8266 NodeMCU V3
-        |
-        | D4 / GPIO2
-        |
-        v
-    Servo Signal
-```
-
-### Servo Power
-
-```text
-External 5V Supply
-        |
-        +---------- Servo VCC
-        |
-       GND
-        |
-        +---------- Servo GND
-        |
-        +---------- ESP8266 GND
-```
-
-### Complete Connection
-
-```text
-             ESP8266 NodeMCU V3
-            ┌───────────────────┐
-            │                   │
-            │ D4 / GPIO2 ───────┼──────── Servo Signal
-            │                   │
-            │ GND ──────────────┼────┐
-            └───────────────────┘    │
-                                     │
-                              Servo GND
-                                     │
-External 5V Supply                   │
-┌───────────────┐                    │
-│  +5V ─────────┼──────────────── Servo VCC
-│               │
-│  GND ─────────┼──────────────── Servo GND
-└───────────────┘
-```
-
-**Important:** The ESP8266 GND and the external servo power-supply GND must be connected together.
-
----
-
-# Power Supply
-
-The ESP8266 operates using 3.3 V logic, while typical hobby servos operate from approximately 5 V.
-
-For a single servo prototype, the servo should preferably be powered from a suitable external 5 V supply.
-
-For multiple servos, calculate the required current based on the servo specifications.
-
-### Do not:
-
-```text
-Servo VCC → ESP8266 3.3V
-```
-
-This can overload the ESP8266's 3.3 V supply.
-
----
-
-# Software Requirements
-
-- Arduino IDE
-- ESP8266 Board Package
-- Servo Library
-
-### Arduino IDE Board Selection
-
-Select:
-
-```text
-Tools
- → Board
-   → ESP8266 Boards
-     → NodeMCU 1.0 (ESP-12E Module)
-```
-
-Recommended settings:
-
-```text
-Board          : NodeMCU 1.0 (ESP-12E Module)
-CPU Frequency  : 80 MHz
-Upload Speed   : 115200
-```
-
----
-
-# Project Structure
-
-```text
-ESP8266-Hand-Assistance/
-│
-├── README.md
-│
-├── src/
-│   └── hand_assistance.ino
-│
-├── hardware/
-│   ├── circuit_diagram.png
-│   └── wiring_diagram.png
-│
-├── docs/
-│   └── project_documentation.pdf
-│
-├── media/
-│   ├── prototype.jpg
-│   └── demonstration.mp4
-│
-└── LICENSE
-```
-
----
-
-# Source Code
-
-```cpp
-#include <Servo.h>
-
-Servo handServo;
-
-#define SERVO_PIN D4
-
-void moveServoSmooth(int fromAngle, int toAngle)
-{
-  if (fromAngle < toAngle)
-  {
-    for (int angle = fromAngle; angle <= toAngle; angle++)
-    {
-      handServo.write(angle);
-      delay(15);
-    }
-  }
-  else
-  {
-    for (int angle = fromAngle; angle >= toAngle; angle--)
-    {
-      handServo.write(angle);
-      delay(15);
-    }
-  }
-}
-
-void setup()
-{
-  handServo.attach(SERVO_PIN);
-
-  // FIRST POSITION = 0°
-  handServo.write(0);
-  delay(1000);
-}
-
-void loop()
-{
-  // 0° → 90°
-  moveServoSmooth(0, 90);
-
-  // Hold at 90° for 3 seconds
-  delay(3000);
-
-  // 90° → 0°
-  moveServoSmooth(90, 0);
-
-  // Hold at 0° for 3 seconds
-  delay(3000);
-}
-```
-
----
-
-# Code Explanation
-
-## Servo Library
-
-```cpp
-#include <Servo.h>
-```
-
-Includes the Arduino Servo library used to control the servo.
-
-## Servo Object
-
-```cpp
-Servo handServo;
-```
-
-Creates a servo object called `handServo`.
-
-## GPIO
-
-```cpp
-#define SERVO_PIN D4
-```
-
-The servo signal is connected to **D4 / GPIO2**.
-
-## Attach Servo
-
-```cpp
-handServo.attach(SERVO_PIN);
-```
-
-Connects the servo control object to D4.
-
-## Initial Position
-
-```cpp
-handServo.write(0);
-```
-
-Sets the initial commanded position to 0°.
-
-## Smooth Movement
-
-```cpp
-moveServoSmooth(0, 90);
-```
-
-Gradually moves the servo from 0° to 90°.
-
-Instead of immediately jumping to 90°, the program sends:
-
-```text
-0°
-1°
-2°
-3°
-...
-88°
-89°
-90°
-```
-
-with a 15 ms delay between each step.
-
----
-
-# Timing
-
-Current parameters:
-
-| Parameter | Value |
-|---|---:|
-| Initial angle | 0° |
-| Maximum angle | 90° |
-| Step size | 1° |
-| Step delay | 15 ms |
-| Hold at 90° | 3 seconds |
-| Hold at 0° | 3 seconds |
-
-### Approximate movement time
-
-```text
-90 × 15 ms
-= 1350 ms
-≈ 1.35 seconds
-```
-
-### Approximate complete cycle
-
-```text
-Opening       ≈ 1.35 seconds
-Hold          = 3 seconds
-Closing       ≈ 1.35 seconds
-Hold          = 3 seconds
-
-Total         ≈ 8.7 seconds
-```
-
----
-
-# Customization
-
-## Change Maximum Angle
-
-For example, to use 60°:
-
-```cpp
-moveServoSmooth(0, 60);
-```
-
-and:
-
-```cpp
-moveServoSmooth(60, 0);
-```
-
-For 120°:
-
-```cpp
-moveServoSmooth(0, 120);
-```
-
-and:
-
-```cpp
-moveServoSmooth(120, 0);
-```
-
-The actual safe mechanical angle must be determined from the mechanism.
-
----
-
-## Change Holding Time
-
-Current:
-
-```cpp
-delay(3000);
-```
-
-### 5 seconds
-
-```cpp
-delay(5000);
-```
-
-### 1 second
-
-```cpp
-delay(1000);
-```
-
----
-
-## Change Movement Speed
-
-Current:
-
-```cpp
-delay(15);
-```
-
-Smaller value:
-
-```cpp
-delay(10);
-```
-
-→ Faster movement.
-
-Larger value:
-
-```cpp
-delay(25);
-```
-
-→ Slower movement.
-
----
-
-# Multiple Servo Expansion
-
-The current prototype uses one servo.
-
-A future version can use multiple servos for different fingers.
-
-```text
-                  ESP8266
-                     |
-        ┌────────────┼────────────┐
-        |            |            |
-     Servo 1      Servo 2      Servo 3
-     Finger 1     Finger 2     Finger 3
-```
-
-If all servos need exactly the same movement, they can potentially receive the same control signal.
-
-However, if each finger requires independent movement, each servo requires an independent control channel.
-
-For a larger number of servos, a **PCA9685 servo driver** can be considered.
-
----
-
-# Future Development
-
-### Hardware
-
-- [ ] Mechanical hand mechanism
-- [ ] Multiple finger actuation
-- [ ] Flex sensors
-- [ ] Force sensors
-- [ ] Limit switches
-- [ ] Emergency stop
-- [ ] Battery-powered operation
-- [ ] Servo driver
-
-### Software
-
-- [ ] Adjustable servo angles
-- [ ] Adjustable movement speed
-- [ ] Adjustable holding time
-- [ ] Repetition counter
-- [ ] Sensor feedback
-- [ ] Fault detection
-- [ ] Wireless configuration
-- [ ] Web-based control interface
-
-### Advanced Development
-
-```text
-Sensors
-   |
-   v
-ESP8266
-   |
-   v
-Control Algorithm
-   |
-   v
-Servo Driver
-   |
-   v
-Multiple Servos
-   |
-   v
-Mechanical Hand
-```
-
-A future closed-loop system can use sensors to measure actual finger position and adjust servo movement accordingly.
-
----
-
-# Testing Procedure
-
-## Stage 1 — Electronic Testing
-
-Test the servo without attaching it to a person's hand.
-
-Verify:
-
-- ESP8266 powers correctly.
-- Servo starts at 0°.
-- Servo moves smoothly to 90°.
-- Servo holds for 3 seconds.
-- Servo returns to 0°.
-- Cycle repeats continuously.
-
-## Stage 2 — Mechanical Testing
-
-Connect the servo to the mechanical prototype.
-
-Check:
-
-- Mechanical travel
-- Linkage alignment
-- Servo torque
-- Mechanical friction
-- Range of motion
-- Stall conditions
-
-## Stage 3 — Safety Testing
-
-Before human interaction, implement:
-
-- Mechanical limits
-- Software angle limits
-- Force limitation
-- Emergency stop
-- Current monitoring
-
----
-
-# Troubleshooting
-
-## Servo Does Not Move
-
-Check:
-
-```text
-D4 → Servo Signal
-5V → Servo VCC
-GND → Servo GND
-```
-
-Make sure:
-
-```text
-ESP8266 GND = Servo Power Supply GND
-```
-
----
-
-## ESP8266 Keeps Restarting
-
-This is commonly caused by insufficient servo power or voltage drops.
-
-Use a dedicated 5 V supply with sufficient current capacity.
-
----
-
-## Servo Is Shaking
-
-Possible causes:
-
-- Insufficient power
-- Poor grounding
-- Electrical noise
-- Mechanical load
-- Loose wiring
-- Low-quality servo
-
----
-
-## Servo Moves in the Wrong Direction
-
-The physical linkage determines the final movement direction.
-
-Change the angle range in software if required.
-
----
-
-# Project Specifications
+## Project Specifications
 
 | Specification | Value |
 |---|---|
-| Controller | ESP8266 NodeMCU V3 |
-| Microcontroller | ESP8266 |
-| GPIO | D4 / GPIO2 |
-| Actuator | Servo Motor |
-| Initial Position | 0° |
-| Maximum Test Position | 90° |
-| Movement | Smooth |
-| Step Size | 1° |
-| Step Delay | 15 ms |
-| Hold Time | 3 seconds |
-| Control Method | Servo PWM |
+| Controller | ESP8266 NodeMCU V3 (ESP-12E) |
+| Wi-Fi Mode | SoftAP (Access Point) |
+| AP IP Address | `192.168.4.1` |
+| Web Server Port | Port 80 (HTTP) |
+| Actuator | Servo Motor (SG90 / MG995 / MG996R) |
+| Control Interfaces | Wi-Fi Web Dashboard + Physical Push-Button (D3) |
+| Movement Profile | Non-blocking Smooth Interpolation (15 ms/deg) |
 | Programming IDE | Arduino IDE |
-| Prototype Type | Assistive Robotics |
+| Power Requirements | 5V DC (2A recommended for servos) |
 
 ---
 
-# Project Status
+## Project Status
 
 ### Completed
-
-- [x] ESP8266 setup
-- [x] Servo control
-- [x] 0° startup position
-- [x] Smooth servo movement
-- [x] 0° → 90° movement
-- [x] 3-second hold
-- [x] 90° → 0° movement
-- [x] 3-second hold
-- [x] Continuous operation
+- [x] ESP8266 SoftAP Wi-Fi hotspot configuration (`ESP8266-Hand-Assistance`)
+- [x] Embedded responsive HTML/CSS/JavaScript Web Control Dashboard
+- [x] Web START & STOP asynchronous button controls with live angle gauge
+- [x] Physical push-button integration on pin `D3` (GPIO0) with debounce
+- [x] Non-blocking state machine engine replacing blocking delays
+- [x] Safe auto-return to 0° rest position upon stopping
+- [x] Cycle counter and telemetry REST API (`/status`)
+- [x] Comprehensive documentation and circuit schematics
 
 ### In Progress / Future
-
-- [ ] Mechanical hand mechanism
-- [ ] Multi-finger control
-- [ ] Flex sensor integration
-- [ ] Force sensing
-- [ ] Emergency stop
-- [ ] Adjustable parameters
-- [ ] Battery operation
-- [ ] Wireless control
-- [ ] Closed-loop control
-- [ ] Safety validation
+- [ ] Multi-finger actuation with PCA9685 I2C servo driver
+- [ ] Flex sensor and force feedback closed-loop control
+- [ ] Web-configurable angle limits and speed presets
+- [ ] OLED real-time status display
 
 ---
 
-# Safety Disclaimer
+## Author
 
-This project is an **engineering prototype** intended for educational, research, and development purposes.
-
-It is **not a certified medical device** and has not been clinically validated.
-
-The current servo angles, movement speed, torque, and timing parameters must not be assumed to be safe for direct human use.
-
-Before connecting the mechanism to a person's hand, appropriate mechanical safety measures, force limitation, emergency stopping, electrical protection, testing, and professional evaluation are required.
-
----
-
-# Demonstration
-
-Add your project demonstration video here:
-
-```markdown
-[Watch Project Demonstration](YOUR_VIDEO_LINK)
-```
-
-Add your prototype image:
-
-```markdown
-![ESP8266 Hand Assistance Prototype](media/prototype.jpg)
-```
-
----
-
-# Author
-
-**Ramkumar V**
-
+**Ramkumar V**  
 Mechatronics Engineering  
-Embedded Systems | Robotics | Automation | PCB Design
+Embedded Systems | Robotics | Automation | PCB Design  
+GitHub: [@CHITTIZONE](https://github.com/CHITTIZONE)
 
 ---
 
-# Acknowledgement
-
-This project was developed as an embedded-systems and assistive-robotics prototype to explore controlled robotic movement for hand-assistance applications.
-
----
-
-# License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
