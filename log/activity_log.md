@@ -4,23 +4,21 @@
 - Initialized project tracking and implementation plans locally and in project directory.
 - Selected repository name: `ESP8266-Hand-Assistance`.
 - Visibility configured: `Public`.
-- GitHub account: `CHITTIZONE` (Ramkumar V).
 - Planned file organization matching README structure: `src/`, `hardware/`, `docs/`, `media/`, `LICENSE`, `README.md`.
 
 ## [2026-10-01 16:35:40 IST] - Project Files Structuring
 - Created comprehensive `README.md` containing circuit schematics, timing, specifications, and flowcharts.
 - Created `src/hand_assistance.ino` with the ESP8266 smooth servo control firmware.
-- Added `LICENSE` with MIT License terms for Ramkumar V.
+- Added `LICENSE` with MIT License terms.
 - Added `.gitignore` configured for Arduino and ESP8266 development.
 - Created `hardware/README.md`, `docs/README.md`, and `media/README.md` for project asset tracking.
 
 ## [2026-10-01 16:36:25 IST] - Git Repository Initialization & Initial Commit
 - Initialized local Git repository on `main` branch.
-- Configured git commit attribution under IAMCHITTI (CHITTIZONE).
 - Committed all project files and structure: commit `be93dfe`.
 
 ## [2026-10-01 16:38:00 IST] - Remote Repository Creation, Push & Registration
-- Created public repository `ESP8266-Hand-Assistance` on GitHub under `CHITTIZONE` via GitHub API.
+- Created public repository `ESP8266-Hand-Assistance` on GitHub via GitHub API.
 - Configured remote origin: `https://github.com/CHITTIZONE/ESP8266-Hand-Assistance.git`.
 - Successfully pushed `main` branch upstream to origin.
 - Registered repository with GitHub Desktop client.
@@ -32,7 +30,7 @@
 - Cleaned up loose unformatted image files from the repository root.
 - Updated `media/README.md` documenting media assets.
 - Embedded prototype setup image prominently in `README.md`.
-- Staged, committed, and pushed changes to remote `origin/main` on GitHub (`CHITTIZONE/ESP8266-Hand-Assistance`).
+- Staged, committed, and pushed changes to remote `origin/main` on GitHub.
 
 ## [2026-10-08 01:46:00 IST] - Wi-Fi Hotspot, Web Server & Physical Button Control Implementation
 - Configured ESP8266 SoftAP mode to broadcast local hotspot (`ESP8266-Hand-Assistance`, IP `192.168.4.1`).
@@ -44,3 +42,17 @@
 - Updated `src/hand_assistance.ino` and `sketch_oct1a/sketch_oct1a.ino`.
 - Updated `README.md` with complete Wi-Fi access guide, circuit connections, state machine flowcharts, and technical specifications.
 - Synchronized implementation plans both in local artifact directory and workspace root `implementation_plan.md`.
+
+## [2026-10-08 01:52:00 IST] - Attribution and Author Branding Cleanup
+- Removed author and personal branding references from `src/hand_assistance.ino` header and Web UI footer.
+- Removed author and personal branding references from `sketch_oct1a/sketch_oct1a.ino` header and Web UI footer.
+- Removed author section from `README.md`.
+- Updated `LICENSE` with generic project copyright.
+- Updated `implementation_plan.md` in local artifact and project root.
+
+## [2026-10-08 01:54:00 IST] - Web Control Dashboard Media Integration & GitHub Remote Push
+- Integrated mobile screenshot capture into `media/web_dashboard.png`.
+- Updated `media/README.md` asset catalog.
+- Embedded dashboard interface image into `README.md` under Web Dashboard section.
+- Synchronized implementation plan and activity log.
+- Pushed updated codebase, firmware, documentation, and media assets to GitHub `main` branch.

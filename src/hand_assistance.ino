@@ -1,7 +1,6 @@
 /*
  * ==============================================================================
  * Project: ESP8266 Servo-Based Hand Assistance System (Wi-Fi AP & Web Server)
- * Author: Ramkumar V (CHITTIZONE)
  * Description:
  *   - Creates a local Wi-Fi Hotspot (SoftAP: "ESP8266-Hand-Assistance").
  *   - Hosts an embedded responsive Web Server dashboard on http://192.168.4.1
@@ -383,7 +382,7 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
     </div>
 
     <footer>
-      Developed by Ramkumar V | CHITTIZONE
+      ESP8266 Hand Assistance Rehabilitation System
     </footer>
   </div>
 

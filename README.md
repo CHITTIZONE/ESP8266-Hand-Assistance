@@ -103,6 +103,13 @@ The firmware uses a non-blocking finite state machine (FSM) executed alongside t
    - **URL**: `http://192.168.4.1`
 
 ### 2. Dashboard Interface
+
+<p align="center">
+  <img src="media/web_dashboard.png" alt="ESP8266 Hand Assistance Web Control Dashboard" width="360">
+  <br>
+  <em>Mobile Web Control Dashboard accessed via Hotspot at http://192.168.4.1</em>
+</p>
+
 The web page displays:
 - **System Status Badge**: Indicates `RUNNING` (Green Glow) or `STOPPED` (Red).
 - **Live Angle Indicator & Gauge**: Real-time display of the servo's current angle from `0°` to `90°`.
@@ -257,15 +264,6 @@ const unsigned long debounceDelay = 50;
 - [ ] Flex sensor and force feedback closed-loop control
 - [ ] Web-configurable angle limits and speed presets
 - [ ] OLED real-time status display
-
----
-
-## Author
-
-**Ramkumar V**  
-Mechatronics Engineering  
-Embedded Systems | Robotics | Automation | PCB Design  
-GitHub: [@CHITTIZONE](https://github.com/CHITTIZONE)
 
 ---
 
